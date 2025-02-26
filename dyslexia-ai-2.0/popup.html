@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dyslexia AI</title>
   <link rel="stylesheet" href="popup.css">
-  
-
 </head>
 <body>
   <div class="container">
@@ -17,7 +15,6 @@
 
     <label>Font Family</label>
     <select id="fontFamily">
-      
       <option value="Open-Dyslexic">Open-Dyslexic</option>
       <option value="Arial">Arial</option>
       <option value="Verdana">Verdana</option>
@@ -29,7 +26,13 @@
       <button id="italic">Italic</button>
       <button id="underline">Underline</button>
       <button id="speak">Speak</button>
+      <button id="summarize">Summarize Text</button> <!-- New Button -->
+    </div>
 
+    <!-- New box to display the summarized text -->
+    <div id="summaryBox" class="summary-box" style="display: none;">
+      <h4>Summary</h4>
+      <p id="summaryText"></p>
     </div>
   </div>
 

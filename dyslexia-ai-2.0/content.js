@@ -1,6 +1,3 @@
-// Content script for Chrome extension that applies styling to selected text
-// and logs the selected text to the console
-
 // Listen for messages from popup.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "changeFontSize") {
@@ -10,6 +7,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === "applyTextStyle") {
     const success = styleSelectedText(request.style);
     sendResponse({ success: success });
+  } else if (request.action === "summarizeText") {
+    const text = getSelectedText();
+    if (text) {
+      const summary = summarizeText(text);
+      console.log("🔹 Original Text:", text);
+      console.log("📌 Summarized Text:", summary);
+      sendResponse({ success: true, summary: summary });
+    } else {
+      sendResponse({ success: false, message: "No text selected." });
+    }
   }
   return true; // Required for async response
 });
@@ -54,70 +61,61 @@ function styleSelectedText(styleType) {
     span.appendChild(fragment);
     range.insertNode(span);
 
-    // Log success message
     console.log(
       "✅ Successfully applied " + styleType + " styling to the selected text"
     );
-
-    // Clear selection
     selection.removeAllRanges();
-
     return true;
   } catch (error) {
     console.error("Error applying style:", error);
-
-    // Fallback approach if the main approach fails
-    try {
-      // Create a unique class for this styling
-      const uniqueClass = "extension-style-" + Date.now();
-
-      // Add a style tag to the document head
-      const styleTag = document.createElement("style");
-      styleTag.textContent = `.${uniqueClass} { 
-        ${getCSSPropertyForStyle(styleType)}
-      }`;
-      document.head.appendChild(styleTag);
-
-      // Create a wrapper with the unique class
-      const wrapper = document.createElement("span");
-      wrapper.className = uniqueClass;
-
-      // Wrap selection with the styled span
-      const clone = range.cloneContents();
-      wrapper.appendChild(clone);
-      range.deleteContents();
-      range.insertNode(wrapper);
-
-      // Log success message for fallback method
-      console.log(
-        "✅ Successfully applied " +
-          styleType +
-          " styling using fallback method"
-      );
-
-      return true;
-    } catch (fallbackError) {
-      console.error("Fallback approach also failed:", fallbackError);
-      return false;
-    }
+    return false;
   }
 }
 
-// Helper function to get CSS property based on style type
-function getCSSPropertyForStyle(styleType) {
-  switch (styleType) {
-    case "bold":
-      return "font-weight: bold !important;";
-    case "italic":
-      return "font-style: italic !important;";
-    case "underline":
-      return "text-decoration: underline !important;";
-    default:
-      return "";
-  }
+// Function to get selected text
+function getSelectedText() {
+  let selectedText = window.getSelection().toString().trim();
+  return selectedText ? selectedText : null;
+}
+
+// Text Summarization Function (Extractive)
+function summarizeText(text, sentenceCount = 3) {
+  let sentences = text.match(/[^.!?]+[.!?]/g) || [text];
+
+  // Word frequency scoring
+  let wordFrequency = {};
+  sentences.forEach((sentence) => {
+    sentence
+      .toLowerCase()
+      .split(/\s+/)
+      .forEach((word) => {
+        word = word.replace(/[^a-z]/gi, "");
+        if (word) wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+      });
+  });
+
+  // Score sentences
+  let sentenceScores = sentences.map((sentence) => {
+    return {
+      text: sentence,
+      score: sentence
+        .toLowerCase()
+        .split(/\s+/)
+        .reduce(
+          (sum, word) =>
+            sum + (wordFrequency[word.replace(/[^a-z]/gi, "")] || 0),
+          0
+        ),
+    };
+  });
+
+  // Sort by score and pick top N sentences
+  return sentenceScores
+    .sort((a, b) => b.score - a.score)
+    .slice(0, sentenceCount)
+    .map((s) => s.text)
+    .join(" ");
 }
 
 // Log when the extension loads
-console.log(
-  "Text styling extension content script loaded. Select text and use the extension buttons to format it."
-);
+console.log("Text styling & summarization extension content script loaded.");
