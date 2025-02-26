@@ -2,13 +2,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const fontSizeSlider = document.getElementById("fontSize");
   const fontFamilySelect = document.getElementById("fontFamily");
 
-  document.getElementById("bold").addEventListener("click", () => sendMessage("bold"));
-  document.getElementById("italic").addEventListener("click", () => sendMessage("italic"));
-  document.getElementById("underline").addEventListener("click", () => sendMessage("underline"));
-  document.getElementById("speak").addEventListener("click", () => sendMessage("speak"));
+  document
+    .getElementById("bold")
+    .addEventListener("click", () => sendMessage("bold"));
+  document
+    .getElementById("italic")
+    .addEventListener("click", () => sendMessage("italic"));
+  document
+    .getElementById("underline")
+    .addEventListener("click", () => sendMessage("underline"));
+  document
+    .getElementById("speak")
+    .addEventListener("click", () => sendMessage("speak"));
 
-  fontSizeSlider.addEventListener("input", () => sendMessage("changeFontSize", fontSizeSlider.value));
-  fontFamilySelect.addEventListener("change", () => sendMessage("changeFontFamily", fontFamilySelect.value));
+  fontSizeSlider.addEventListener("input", () =>
+    sendMessage("changeFontSize", fontSizeSlider.value)
+  );
+  fontFamilySelect.addEventListener("change", () =>
+    sendMessage("changeFontFamily", fontFamilySelect.value)
+  );
 });
 
 function sendMessage(action, value = null) {
@@ -25,7 +37,7 @@ function sendMessage(action, value = null) {
 function modifyContent(action, value) {
   const selection = window.getSelection();
   if (!selection.rangeCount) return;
-  
+
   const range = selection.getRangeAt(0);
   let selectedText = range.toString().trim();
 
@@ -46,11 +58,14 @@ function modifyContent(action, value) {
   let parentElement = selection.focusNode.parentElement;
 
   if (action === "bold") {
-    span.style.fontWeight = parentElement.style.fontWeight === "bold" ? "normal" : "bold";
+    span.style.fontWeight =
+      parentElement.style.fontWeight === "bold" ? "normal" : "bold";
   } else if (action === "italic") {
-    span.style.fontStyle = parentElement.style.fontStyle === "italic" ? "normal" : "italic";
+    span.style.fontStyle =
+      parentElement.style.fontStyle === "italic" ? "normal" : "italic";
   } else if (action === "underline") {
-    span.style.textDecoration = parentElement.style.textDecoration === "underline" ? "none" : "underline";
+    span.style.textDecoration =
+      parentElement.style.textDecoration === "underline" ? "none" : "underline";
   } else if (action === "changeFontSize") {
     span.style.fontSize = value + "px";
   } else if (action === "changeFontFamily") {
