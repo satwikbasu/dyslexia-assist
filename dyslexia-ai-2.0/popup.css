@@ -1,25 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=OpenDyslexic:wght@400;700&display=swap');
+/* popup.css */
 @font-face {
-  font-family: 'Open-Dyslexic';
-  src: url('/fonts/OpenDyslexic-Regular.otf') format('opentype');
+  font-family: 'OpenDyslexic';
+  src: url("fonts/OpenDyslexic-Regular.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
 }
 
-@font-face {
-  font-family: 'Open-Dyslexic';
-  src: url('/fonts/OpenDyslexic-Bold.otf') format('opentype');
-  font-weight: bold;
-  font-style: normal;
-}
-
 body {
-
-  font-family: 'Open-Dyslexic', sans-serif;
-
+  font-family: 'OpenDyslexic', sans-serif;
   background: #F5F5DC; /* Light beige background */
   color: #2C3E50; /* Dark navy text for contrast */
-  width: 260px;
+  width: 300px;
   padding: 20px;
   border-radius: 10px;
 }
@@ -59,8 +50,16 @@ select {
   font-weight: 600;
 }
 
+/* Button container to prevent overflow */
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 button {
-  margin: 8px 4px;
   padding: 8px 12px;
   border: none;
   border-radius: 10px;
@@ -68,8 +67,11 @@ button {
   cursor: pointer;
   transition: 0.3s;
   font-weight: 700;
+  width: 100px; /* Ensures equal button sizing */
+  margin: 4px;
 }
 
+/* Button Colors */
 #bold {
   background: #4A90E2; /* Dyslexia-friendly blue */
   color: white;
@@ -88,6 +90,47 @@ button {
 #speak {
   background: #8E44AD; /* Calm purple */
   color: white;
+}
+
+#summarize-btn {
+  background: #E74C3C; /* Bright red for visibility */
+  color: white;
+  display: block; /* Ensure it always appears */
+  width: calc(100% - 8px); /* Full width accounting for margin */
+  margin-top: 10px;
+}
+
+.api-key-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+}
+
+.api-key-section input {
+  width: calc(100% - 16px);
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.api-key-section button {
+  background: #2C3E50;
+  width: calc(100% - 8px);
+}
+
+.status-message {
+  margin-top: 5px;
+  font-size: 12px;
+  height: 14px;
+}
+
+.success {
+  color: #27AE60;
+}
+
+.error {
+  color: #E74C3C;
 }
 
 button:hover {

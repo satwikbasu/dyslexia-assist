@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dyslexia AI</title>
   <link rel="stylesheet" href="popup.css">
-  
-
 </head>
 <body>
   <div class="container">
@@ -17,22 +15,30 @@
 
     <label>Font Family</label>
     <select id="fontFamily">
-      
-      <option value="Open-Dyslexic">Open-Dyslexic</option>
+      <option value="OpenDyslexic">OpenDyslexic</option>
       <option value="Arial">Arial</option>
       <option value="Verdana">Verdana</option>
       <option value="Times New Roman">Times New Roman</option>
     </select>
 
-    <div>
+    <div class="button-container">
       <button id="bold">Bold</button>
       <button id="italic">Italic</button>
       <button id="underline">Underline</button>
       <button id="speak">Speak</button>
-
+    </div>
+    
+    <button id="summarize-btn">Summarize Text</button>
+    
+    <div class="api-key-section">
+      <label for="apiKey">OpenAI API Key</label>
+      <input type="password" id="apiKey" placeholder="sk-...">
+      <button id="save-api-key">Save API Key</button>
+      <div id="status-message" class="status-message"></div>
     </div>
   </div>
 
   <script src="popup.js"></script>
 </body>
 </html>
+

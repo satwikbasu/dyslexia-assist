@@ -1,20 +1,35 @@
 {
   "manifest_version": 3,
-  "name": "Dyslexia AI",
+  "name": "Dyslexia Assist AI",
   "version": "1.0",
-  "description": "A Chrome extension to modify font size, font family, and text styles.",
-  "permissions": ["storage", "scripting"],
-  "host_permissions": ["<all_urls>"],
+  "description": "AI-powered extension to simplify text, summarize content, provide word definitions, and modify font styles.",
+  "permissions": ["activeTab", "storage", "contextMenus", "scripting"],
+  "host_permissions": [
+  "https://api.openai.com/v1/chat/completions",
+  "https://api.dictionaryapi.dev/api/v2/entries/en/*"
+],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "icon.png"
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
   },
- "content_scripts": [
-  {
-    "matches": ["<all_urls>"],
-    "js": ["content.js"],
-    "run_at": "document_idle"
-  }
-]
-
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["fonts/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
