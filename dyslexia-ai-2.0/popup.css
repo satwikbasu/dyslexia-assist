@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=OpenDyslexic:wght@400;700&display=swap');
 @font-face {
   font-family: 'Open-Dyslexic';
-  src: url('/fonts/OpenDyslexic-Regular.otf') format('opentype');
+  src: url('./fonts/OpenDyslexic-Regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Open-Dyslexic';
-  src: url('/fonts/OpenDyslexic-Bold.otf') format('opentype');
+  src: url('./fonts/OpenDyslexic-Bold.otf') format('opentype');
   font-weight: bold;
   font-style: normal;
 }
@@ -100,4 +100,8 @@ button:hover {
   border: 1px solid #ccc;
   background: #f9f9f9;
   border-radius: 5px;
+}
+.active {
+  background-color: #007bff;
+  color: white;
 }

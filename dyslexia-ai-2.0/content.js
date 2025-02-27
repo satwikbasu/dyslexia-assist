@@ -1,121 +1,93 @@
-// Listen for messages from popup.js
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "changeFontSize") {
-    document.body.style.fontSize = request.value + "px"; // Apply font size globally
-  } else if (request.action === "changeFontFamily") {
-    document.body.style.fontFamily = request.value; // Apply font family globally
-  } else if (request.action === "applyTextStyle") {
-    const success = styleSelectedText(request.style);
-    sendResponse({ success: success });
-  } else if (request.action === "summarizeText") {
-    const text = getSelectedText();
-    if (text) {
-      const summary = summarizeText(text);
-      console.log("🔹 Original Text:", text);
-      console.log("📌 Summarized Text:", summary);
-      sendResponse({ success: true, summary: summary });
-    } else {
-      sendResponse({ success: false, message: "No text selected." });
-    }
-  }
-  return true; // Required for async response
-});
-
-// Function to style selected text and log it to console
-function styleSelectedText(styleType) {
+function modifyContent(action, value) {
   const selection = window.getSelection();
-  if (!selection.rangeCount) return false;
+  if (!selection.rangeCount) return;
 
   const range = selection.getRangeAt(0);
-  if (range.collapsed) return false;
+  let selectedText = range.toString().trim();
+  if (!selectedText) return;
 
-  // Get the selected text
-  const selectedText = selection.toString();
+  let parentElement = selection.focusNode.parentElement;
 
-  // Log selection information to console
-  console.log("Selected Text:", selectedText);
-  console.log("Selection Length:", selectedText.length);
-  console.log("Applied Style:", styleType);
-
-  // Create a span element to wrap the selection
-  const span = document.createElement("span");
-
-  // Set the appropriate CSS style
-  switch (styleType) {
-    case "bold":
-      span.style.fontWeight = "bold";
-      break;
-    case "italic":
-      span.style.fontStyle = "italic";
-      break;
-    case "underline":
-      span.style.textDecoration = "underline";
-      break;
-    default:
-      return false;
+  // Toggle Speak functionality
+  if (action === "speak") {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel(); // Stop speech if already speaking
+    } else {
+      const utterance = new SpeechSynthesisUtterance(selectedText);
+      utterance.lang = "en-US";
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      speechSynthesis.speak(utterance);
+    }
+    return;
   }
 
-  try {
-    // Extract content and wrap in styled span
-    const fragment = range.extractContents();
-    span.appendChild(fragment);
-    range.insertNode(span);
+  // Toggle text styling
+  let span = document.createElement("span");
+  span.textContent = selectedText;
 
-    console.log(
-      "✅ Successfully applied " + styleType + " styling to the selected text"
-    );
-    selection.removeAllRanges();
-    return true;
-  } catch (error) {
-    console.error("Error applying style:", error);
-    return false;
-  }
+  let toggleStyle = (property, valueOn, valueOff) => {
+    span.style[property] =
+      parentElement.style[property] === valueOn ? valueOff : valueOn;
+  };
+
+  if (action === "bold") toggleStyle("fontWeight", "bold", "normal");
+  if (action === "italic") toggleStyle("fontStyle", "italic", "normal");
+  if (action === "underline")
+    toggleStyle("textDecoration", "underline", "none");
+  if (action === "changeFontSize") span.style.fontSize = value + "px";
+  if (action === "changeFontFamily") span.style.fontFamily = value;
+
+  range.deleteContents();
+  range.insertNode(span);
 }
 
-// Function to get selected text
-function getSelectedText() {
-  let selectedText = window.getSelection().toString().trim();
-  return selectedText ? selectedText : null;
-}
+// Summarize selected text using word frequency
+function summarizeSelectedText() {
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return "";
 
-// Text Summarization Function (Extractive)
-function summarizeText(text, sentenceCount = 3) {
-  let sentences = text.match(/[^.!?]+[.!?]/g) || [text];
+  let text = selection.toString().trim();
+  if (!text) return "";
 
-  // Word frequency scoring
-  let wordFrequency = {};
-  sentences.forEach((sentence) => {
-    sentence
-      .toLowerCase()
-      .split(/\s+/)
-      .forEach((word) => {
-        word = word.replace(/[^a-z]/gi, "");
-        if (word) wordFrequency[word] = (wordFrequency[word] || 0) + 1;
-      });
-  });
+  let sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
 
-  // Score sentences
+  let wordCounts = {};
+  let stopwords = new Set([
+    "the",
+    "is",
+    "in",
+    "and",
+    "of",
+    "to",
+    "a",
+    "that",
+    "it",
+    "on",
+  ]);
+
+  text
+    .toLowerCase()
+    .split(/\s+/)
+    .forEach((word) => {
+      word = word.replace(/[^a-zA-Z]/g, "");
+      if (word && !stopwords.has(word)) {
+        wordCounts[word] = (wordCounts[word] || 0) + 1;
+      }
+    });
+
   let sentenceScores = sentences.map((sentence) => {
-    return {
-      text: sentence,
-      score: sentence
-        .toLowerCase()
-        .split(/\s+/)
-        .reduce(
-          (sum, word) =>
-            sum + (wordFrequency[word.replace(/[^a-z]/gi, "")] || 0),
-          0
-        ),
-    };
+    let words = sentence.toLowerCase().split(/\s+/);
+    let score = words.reduce(
+      (sum, word) => sum + (wordCounts[word.replace(/[^a-zA-Z]/g, "")] || 0),
+      0
+    );
+    return { sentence, score };
   });
 
-  // Sort by score and pick top N sentences
+  sentenceScores.sort((a, b) => b.score - a.score);
   return sentenceScores
-    .sort((a, b) => b.score - a.score)
-    .slice(0, sentenceCount)
-    .map((s) => s.text)
+    .slice(0, Math.min(3, sentenceScores.length))
+    .map((s) => s.sentence)
     .join(" ");
 }
-
-// Log when the extension loads
-console.log("Text styling & summarization extension content script loaded.");

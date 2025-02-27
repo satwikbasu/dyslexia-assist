@@ -2,19 +2,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const fontSizeSlider = document.getElementById("fontSize");
   const fontFamilySelect = document.getElementById("fontFamily");
 
-  document
-    .getElementById("bold")
-    .addEventListener("click", () => sendMessage("bold"));
-  document
-    .getElementById("italic")
-    .addEventListener("click", () => sendMessage("italic"));
-  document
-    .getElementById("underline")
-    .addEventListener("click", () => sendMessage("underline"));
-  document
-    .getElementById("speak")
-    .addEventListener("click", () => sendMessage("speak"));
-  document.getElementById("summarize").addEventListener("click", summarizeText); // Summarize Button
+  const buttons = ["bold", "italic", "underline", "speak"];
+  const activeStates = {
+    bold: false,
+    italic: false,
+    underline: false,
+    speak: false,
+  };
+
+  buttons.forEach((btn) => {
+    document.getElementById(btn).addEventListener("click", function () {
+      activeStates[btn] = !activeStates[btn]; // Toggle state
+      this.classList.toggle("active", activeStates[btn]); // Change button UI
+      sendMessage(btn, activeStates[btn]); // Send state to content script
+    });
+  });
+
+  document.getElementById("summarize").addEventListener("click", summarizeText);
 
   fontSizeSlider.addEventListener("input", () =>
     sendMessage("changeFontSize", fontSizeSlider.value)
@@ -41,32 +45,31 @@ function modifyContent(action, value) {
 
   const range = selection.getRangeAt(0);
   let selectedText = range.toString().trim();
-
   if (!selectedText) return;
 
   if (action === "speak") {
-    const utterance = new SpeechSynthesisUtterance(selectedText);
-    utterance.lang = "en-US"; // Language setting
-    utterance.rate = 1.0; // Speed
-    utterance.pitch = 1.0; // Pitch
-    speechSynthesis.speak(utterance);
+    if (value) {
+      const utterance = new SpeechSynthesisUtterance(selectedText);
+      utterance.lang = "en-US";
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      speechSynthesis.speak(utterance);
+    } else {
+      speechSynthesis.cancel(); // Stop speaking when toggled off
+    }
     return;
   }
 
+  // Wrapping selected text with a span and toggling styles
   let span = document.createElement("span");
   span.textContent = selectedText;
 
-  let parentElement = selection.focusNode.parentElement;
-
   if (action === "bold") {
-    span.style.fontWeight =
-      parentElement.style.fontWeight === "bold" ? "normal" : "bold";
+    span.style.fontWeight = value ? "bold" : "normal";
   } else if (action === "italic") {
-    span.style.fontStyle =
-      parentElement.style.fontStyle === "italic" ? "normal" : "italic";
+    span.style.fontStyle = value ? "italic" : "normal";
   } else if (action === "underline") {
-    span.style.textDecoration =
-      parentElement.style.textDecoration === "underline" ? "none" : "underline";
+    span.style.textDecoration = value ? "underline" : "none";
   } else if (action === "changeFontSize") {
     span.style.fontSize = value + "px";
   } else if (action === "changeFontFamily") {
@@ -106,10 +109,8 @@ function summarizeSelectedText() {
   let text = selection.toString().trim();
   if (!text) return "";
 
-  // Tokenize the text into sentences
   let sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
 
-  // Count word frequencies (ignoring common stopwords)
   let wordCounts = {};
   let stopwords = new Set([
     "the",
@@ -141,7 +142,6 @@ function summarizeSelectedText() {
       }
     });
 
-  // Score sentences based on important words
   let sentenceScores = sentences.map((sentence) => {
     let words = sentence.toLowerCase().split(/\s+/);
     let score = words.reduce(
@@ -151,7 +151,6 @@ function summarizeSelectedText() {
     return { sentence, score };
   });
 
-  // Sort sentences by score and select top 2-3
   sentenceScores.sort((a, b) => b.score - a.score);
   let summary = sentenceScores
     .slice(0, Math.min(3, sentenceScores.length))
